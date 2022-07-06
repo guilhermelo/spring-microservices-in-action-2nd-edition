@@ -1,0 +1,24 @@
+# Spring Cloud configuration
+spring:
+  application:
+    name: licensing-service
+  profiles:
+    active: dev
+  config:
+    import: configserver:http://localhost:8071
+
+management:
+  endpoint:
+    enabled-by-default: false
+    web:
+      base-path: /
+    health:
+      enabled: true
+      show-details: always
+      diskspace:
+        enabled: true
+      db:
+        enabled: false
+
+
+
