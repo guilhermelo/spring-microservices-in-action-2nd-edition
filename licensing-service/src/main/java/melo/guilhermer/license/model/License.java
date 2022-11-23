@@ -12,9 +12,7 @@ import javax.persistence.Table;
 public class License extends RepresentationModel<License> {
 
     @Id
-    @Column(name = "license_id", nullable = false)
     private int id;
-    private String licenseId;
     private String description;
     @Column(name = "organization_id", nullable = false)
     private String organizationId;
@@ -22,27 +20,20 @@ public class License extends RepresentationModel<License> {
     private String productName;
     @Column(name = "license_type", nullable = false)
     private String licenseType;
-    @Column(name="comment")
+    @Column(name = "comment")
     private String comment;
 
     public License withComment(String comment) {
         this.setComment(comment);
         return this;
     }
+
     public int getId() {
         return id;
     }
 
     public void setId(final int id) {
         this.id = id;
-    }
-
-    public String getLicenseId() {
-        return licenseId;
-    }
-
-    public void setLicenseId(final String licenseId) {
-        this.licenseId = licenseId;
     }
 
     public String getDescription() {

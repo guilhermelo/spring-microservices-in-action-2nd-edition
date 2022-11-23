@@ -3,18 +3,18 @@ spring:
     name: config-server
   profiles:
     # Usando native porque armazenará as configurações nos arquivos do projeto ou sistema
-    # active: native
-    active:
-      - vault
+     active: native
+#    active:
+#      - vault
   # Configuração para pegar as informações dos arquivos dentro do diretório config
   cloud:
     config:
       server:
-        vault:
-          port: 8200
-          host: 127.0.0.1
-          kvVersion: 2
-#        native:
-#          search-locations: classpath:/config
+#        vault:
+#          port: 8200
+#          host: 127.0.0.1
+#          kvVersion: 2
+        native:
+          search-locations: classpath:/config
 server:
   port: 8071

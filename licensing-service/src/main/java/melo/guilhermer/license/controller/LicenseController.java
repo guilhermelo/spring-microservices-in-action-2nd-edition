@@ -1,24 +1,15 @@
 package melo.guilhermer.license.controller;
 
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+import melo.guilhermer.license.model.License;
+import melo.guilhermer.license.service.LicenseService;
+import org.springframework.hateoas.Link;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Locale;
 
-import org.springframework.hateoas.Link;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import melo.guilhermer.license.model.License;
-import melo.guilhermer.license.service.LicenseService;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping(value = "v1/organization/{organizationId}/license")
@@ -32,10 +23,10 @@ public class LicenseController {
 
     @GetMapping(value = "/{licenseId}")
     public ResponseEntity<License> getLicense(@PathVariable("organizationId") String organizationId,
-        @PathVariable("licenseId") String licenseId) {
-        License license = service.getLicense(licenseId, organizationId);
+        @PathVariable("licenseId") Integer id) {
+        License license = service.getLicense(id, organizationId);
 
-        Link getMethod = linkTo(methodOn(LicenseController.class).getLicense(organizationId, license.getLicenseId()))
+        Link getMethod = linkTo(methodOn(LicenseController.class).getLicense(organizationId, license.getId()))
             .withSelfRel();
 
         Link createMethod = linkTo(methodOn(LicenseController.class).createLicense(organizationId, license, null)).withRel(
@@ -46,7 +37,7 @@ public class LicenseController {
             .withRel("updateLicense");
 
         Link deleteMethod = linkTo(methodOn(LicenseController.class)
-            .deleteLicense(organizationId, license.getLicenseId()))
+            .deleteLicense(organizationId, String.valueOf(license.getId())))
             .withRel("deleteLicense");
 
         license.add(getMethod, createMethod, updateMethod, deleteMethod);
@@ -72,5 +63,13 @@ public class LicenseController {
         @PathVariable("organizationId") String organizationId,
         @PathVariable("licenseId") String licenseId) {
         return ResponseEntity.ok(service.deleteLicense(licenseId, organizationId));
+    }
+
+    @RequestMapping(value="/{licenseId}/{clientType}", method = RequestMethod.GET)
+    public License getLicensesWithClient(
+            @PathVariable("organizationId") String organizationId,
+            @PathVariable("licenseId") Integer id,
+            @PathVariable("clientType") String clientType) {
+        return service.getLicense(id, organizationId, clientType);
     }
 }

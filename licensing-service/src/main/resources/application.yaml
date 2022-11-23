@@ -1,3 +1,6 @@
+server:
+  port: 8082
+
 # Spring Cloud configuration
 spring:
   application:
