@@ -6,13 +6,15 @@ import org.springframework.hateoas.Link;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.TimeoutException;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
-@RequestMapping(value = "v1/organization/{organizationId}/license")
+@RequestMapping(value = "v1/licenses")
 public class LicenseController {
 
     private final LicenseService service;
@@ -21,15 +23,19 @@ public class LicenseController {
         this.service = service;
     }
 
-    @GetMapping(value = "/{licenseId}")
+    @GetMapping(value = "/{licenseId}/organization/{organizationId}")
     public ResponseEntity<License> getLicense(@PathVariable("organizationId") String organizationId,
-        @PathVariable("licenseId") Integer id) {
-        License license = service.getLicense(id, organizationId);
+        @PathVariable("licenseId") Integer id) throws TimeoutException, InterruptedException {
+        List<License> licenses = service.getLIcenseByOrganization(organizationId);
+        // License license = service.getLicense(id, organizationId);
+
+        License license = licenses.get(0);
+
 
         Link getMethod = linkTo(methodOn(LicenseController.class).getLicense(organizationId, license.getId()))
             .withSelfRel();
 
-        Link createMethod = linkTo(methodOn(LicenseController.class).createLicense(organizationId, license, null)).withRel(
+        Link createMethod = linkTo(methodOn(LicenseController.class).createLicense(license, null)).withRel(
             "createLicense");
 
         Link updateMethod = linkTo(methodOn(LicenseController.class)
@@ -52,10 +58,8 @@ public class LicenseController {
     }
 
     @PostMapping
-    public ResponseEntity<String> createLicense(
-        @PathVariable("organizationId") String organizationId,
-        @RequestBody License request, @RequestHeader(value = "Accept-Language", required = false) Locale locale) {
-        return ResponseEntity.ok(service.createLicense(request, organizationId, locale));
+    public ResponseEntity<String> createLicense(@RequestBody License request, @RequestHeader(value = "Accept-Language", required = false) Locale locale) {
+        return ResponseEntity.ok(service.createLicense(request, locale));
     }
 
     @DeleteMapping(value = "/{licenseId}")

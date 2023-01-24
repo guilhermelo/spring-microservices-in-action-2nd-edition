@@ -23,5 +23,36 @@ management:
       db:
         enabled: false
 
+resilience4j:
+  instances:
+#    Nome utilizado na anotação
+    licenseService:
+#   Indica se a configuração deve ser exposta no endpoint de integração
+      registerHealthIndicator: true
+#    Define o tamanho do buffer no estado fechado
+      ringBufferSizeInClosedState: 5
+#      Define o tamanho do buffer no estado meio-aberto
+      ringBufferSizeInHalfOpenState: 3
+#      Define o tempo para esperar no estado aberto
+      waitDurationInOpenState: 10s
+#      Define a porcentagem do limite de taxa de falhas
+      failureRateThreshold: 50
+#      Define as exceções que devem ser registradas como falhas
+      recordExceptions:
+        - org.springframework.web.client.HttpServerErrorException
+        - java.io.IOException
+        - java.util.concurrent.TimeoutException
+        - org.springframework.web.client.ResourceAccessException
+
+      organizationService:
+        registerHealthIndicator: true
+        ringBufferSizeInClosedState: 6
+        ringBufferSizeInHalfOpenState: 4
+        waitDurationInOpenState: 20s
+        failureRateThreshold: 60
+
+
+
+
 
 
