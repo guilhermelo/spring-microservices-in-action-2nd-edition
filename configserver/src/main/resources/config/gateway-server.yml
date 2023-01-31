@@ -9,3 +9,21 @@ eureka:
     fetchRegistry: true
     serviceUrl:
       defaultZone: http://eurekaserver:8070/eureka/
+
+
+# Habilita a criação de rotas baseado nos serviços registrados com o service discovery
+spring:
+  cloud:
+    gateway:
+      discovery.locator:
+        enabled: true
+        lowerCaseServiceId: true
+      routes:
+        - id: organization-service
+          uri: lb://organization-service
+
+          predicates:
+            - Path=/organization/**
+
+          filters:
+            - RewritePath=/organization/(?<path>.*), /$\{path}
