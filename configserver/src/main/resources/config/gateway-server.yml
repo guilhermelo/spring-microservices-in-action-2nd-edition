@@ -8,12 +8,20 @@ eureka:
     registerWithEureka: true
     fetchRegistry: true
     serviceUrl:
-      defaultZone: http://eurekaserver:8070/eureka/
+      defaultZone: http://localhost:8070/eureka
+
+# Configura envio de log para o zipkin
+zipkin:
+  baseUrl: zipkin:9411
 
 
-# Habilita a criação de rotas baseado nos serviços registrados com o service discovery
 spring:
+  # Configura para que 100% dos logs sejam enviados para o zipkin
+  sleuth:
+    sampler:
+      percentage: 1
   cloud:
+    # Habilita a criação de rotas baseado nos serviços registrados com o service discovery
     gateway:
       discovery.locator:
         enabled: true
@@ -27,3 +35,7 @@ spring:
 
           filters:
             - RewritePath=/organization/(?<path>.*), /$\{path}
+            # Possibilita que o header Authentication passe para os serviços atrás do gateway
+            - RemoveRequestHeader= Cookie,Set-Cookie
+    compatibility-verifier:
+      enabled: false

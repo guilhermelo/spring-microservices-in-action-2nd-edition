@@ -23,6 +23,11 @@ public class LicenseController {
         this.service = service;
     }
 
+    @GetMapping
+    public ResponseEntity<List<License>> getLicenses() {
+        return ResponseEntity.ok(service.getLicenses());    }
+
+
     @GetMapping(value = "/{licenseId}/organization/{organizationId}")
     public ResponseEntity<License> getLicense(@PathVariable("organizationId") String organizationId,
         @PathVariable("licenseId") Integer id) throws TimeoutException, InterruptedException {
@@ -69,7 +74,7 @@ public class LicenseController {
         return ResponseEntity.ok(service.deleteLicense(licenseId, organizationId));
     }
 
-    @RequestMapping(value="/{licenseId}/{clientType}", method = RequestMethod.GET)
+    @RequestMapping(value="/{licenseId}/organization/{organizationId}/{clientType}", method = RequestMethod.GET)
     public License getLicensesWithClient(
             @PathVariable("organizationId") String organizationId,
             @PathVariable("licenseId") Integer id,

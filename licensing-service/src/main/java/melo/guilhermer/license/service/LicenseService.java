@@ -3,8 +3,13 @@ package melo.guilhermer.license.service;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import melo.guilhermer.license.ServiceConfig;
 import melo.guilhermer.license.model.License;
+import melo.guilhermer.license.model.Organization;
 import melo.guilhermer.license.repository.LicenseRepository;
+import melo.guilhermer.license.service.client.OrganizationDiscoveryClient;
+import melo.guilhermer.license.service.client.OrganizationFeignClient;
+import melo.guilhermer.license.service.client.OrganizationRestTemplateClient;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -21,11 +26,22 @@ public class LicenseService {
     private final MessageSource messageSource;
     private final LicenseRepository licenseRepository;
     private final ServiceConfig config;
+    OrganizationFeignClient organizationFeignClient;
+    OrganizationRestTemplateClient organizationRestClient;
+    OrganizationDiscoveryClient organizationDiscoveryClient;
 
-    public LicenseService(final MessageSource messageSource, LicenseRepository licenseRepository, ServiceConfig config) {
+    private static final Logger logger = LoggerFactory.getLogger(LicenseService.class);
+
+    public LicenseService(final MessageSource messageSource, LicenseRepository licenseRepository, ServiceConfig config,
+                          OrganizationFeignClient organizationFeignClient,
+                          OrganizationRestTemplateClient organizationRestClient,
+                          OrganizationDiscoveryClient organizationDiscoveryClient) {
         this.messageSource = messageSource;
         this.licenseRepository = licenseRepository;
         this.config = config;
+        this.organizationFeignClient = organizationFeignClient;
+        this.organizationRestClient = organizationRestClient;
+        this.organizationDiscoveryClient = organizationDiscoveryClient;
     }
 
     @CircuitBreaker(name = "licenseService")
@@ -70,16 +86,39 @@ public class LicenseService {
             throw new IllegalArgumentException(String.format(messageSource.getMessage("license.search.error.message", null, null), id, organizationId));
         }
 
-        return new License();
-//        Organization organization = retrieveOrganizationInfo(organizationId,
-//                clientType);
-//        if (null != organization) {
-//            license.setOrganizationName(organization.getName());
-//            license.setContactName(organization.getContactName());
-//            license.setContactEmail(organization.getContactEmail());
-//            license.setContactPhone(organization.getContactPhone());
-//        }
-//        return license.withComment(config.getExampleProperty());
+        Organization organization = retrieveOrganizationInfo(organizationId, clientType);
+        if (null != organization) {
+            license.setOrganizationName(organization.getName());
+            license.setContactName(organization.getContactName());
+            license.setContactEmail(organization.getContactEmail());
+            license.setContactPhone(organization.getContactPhone());
+        }
+        return license.withComment(config.getProperty());
+    }
+
+    private Organization retrieveOrganizationInfo(String organizationId, String clientType) {
+
+        Organization organization = null;
+
+        switch (clientType) {
+            case "feign":
+                logger.debug("I am using the feign client");
+                organization = organizationFeignClient.getOrganization(organizationId);
+                break;
+            case "rest":
+                logger.debug("I am using the rest client");
+                organization = organizationRestClient.getOrganization(organizationId);
+                break;
+            case "discovery":
+                logger.debug("I am using the discovery client");
+                organization = organizationDiscoveryClient.getOrganization(organizationId);
+                break;
+            default:
+                organization = organizationRestClient.getOrganization(organizationId);
+                break;
+        }
+
+        return organization;
     }
 
     @CircuitBreaker(name = "licenseService", fallbackMethod = "buildFallbackLicenseList")
@@ -97,5 +136,9 @@ public class LicenseService {
         license.setProductName("Sorry no licensing information currently available");
         fallbackList.add(license);
         return fallbackList;
+    }
+
+    public List<License> getLicenses() {
+        return licenseRepository.findAll();
     }
 }
